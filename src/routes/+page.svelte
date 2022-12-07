@@ -1,9 +1,12 @@
 <script lang="ts">
 	import wiki from 'wikipedia';
 
-	import { Button, ComboBox } from 'carbon-components-svelte';
+	import { Button, ButtonSet, ComboBox } from 'carbon-components-svelte';
 	import Pause from 'carbon-icons-svelte/lib/Pause.svelte';
 	import Play from 'carbon-icons-svelte/lib/Play.svelte';
+	import Add from 'carbon-icons-svelte/lib/Add.svelte';
+	import Subtract from 'carbon-icons-svelte/lib/Subtract.svelte';
+	import Reset from 'carbon-icons-svelte/lib/Reset.svelte';
 
 	/*
         words loading
@@ -12,6 +15,7 @@
         next}
             on:keydown set interval do
             on:keyup clear interval
+        variable speed
     */
 
 	interface Result {
@@ -49,14 +53,41 @@
 		paused ? play() : pause();
 	};
 
-	const pause = () => clearInterval(word_interval_id);
+	const reset = () => {
+		current_index = 0;
+	};
+
+	const pause = () => {
+		clearInterval(word_interval_id);
+		paused = true;
+	};
 
 	const play = () => {
+        if (!words) return
 		word_interval_id = setInterval(() => {
 			let next = words[current_index];
 			if (next) display = next;
 			++current_index;
 		}, word_interval);
+		paused = false;
+	};
+
+    let increase_speed_interval: NodeJS.Timeout
+	const increase_speed = () => {
+		delay(() => --word_interval, 1300, increase_speed_interval);
+	};
+
+    let decrease_speed_interval: NodeJS.Timeout
+	const decrease_speed = () => {
+		delay(() => ++word_interval, 1300, decrease_speed_interval);
+	};
+
+	const delay = (f: Function, timeout: number = 1300, interval: NodeJS.Timeout) => {
+        // clearInterval(interval)
+		f();
+		// setTimeout(() => {
+		// 	setInterval(f);
+		// }, timeout);
 	};
 
 	const search = async () => {
@@ -80,4 +111,14 @@
 
 <p>{display}</p>
 
-<Button icon={paused ? Play : Pause} on:click={toggle} />
+<Button size="small" iconDescription="Reset" on:click={reset} icon={Reset} />
+<Button
+	size="small"
+	iconDescription={paused ? 'Play' : 'Pause'}
+	icon={paused ? Play : Pause}
+	on:click={toggle}
+/>
+<Button size="small" iconDescription="Reduce Speed" icon={Subtract} on:click={decrease_speed} />
+<Button size="small" iconDescription="Increase Speed" icon={Add} on:click={increase_speed} />
+
+<p>{60 / (word_interval / 1000)} words per minute</p>
