@@ -28,7 +28,7 @@
 
     const reset = () => {
         clearInterval(interval_id)
-        all = text.value.split(' ')
+        all = text.value.split(/\s+/g)
         play()
         current_id = 0;
         console.log(all.length)
@@ -43,7 +43,7 @@
         interval_id = setInterval(() => {
             let next = all[current_id];
             if (next) { current.innerText = next; ++current_id }
-        }, 137)
+        }, 178.0415430267062)
         paused = false
     }
 
@@ -53,5 +53,6 @@
     #current {
         margin: auto 0;
         font-size: 37px;
+        font-family: monospace;
     }
 </style>
