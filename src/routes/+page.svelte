@@ -34,6 +34,7 @@
 		search_delay_id: NodeJS.Timer,
 		content: string,
 		words: string[],
+        search_loading: boolean,
 		loading: boolean,
 		display: string,
 		paused: boolean = true,
