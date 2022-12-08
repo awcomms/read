@@ -18,6 +18,8 @@
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/adapter-static": "^1.0.0-next.48",
 		"@sveltejs/kit": "next",
+		"@types/marked": "^4.0.7",
+		"@types/serviceworker": "^0.0.58",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
 		"carbon-components-svelte": "^0.70.12",
@@ -40,6 +42,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"marked": "^4.2.4",
 		"wikipedia": "^1.1.9"
 	}
 }
