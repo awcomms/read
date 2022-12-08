@@ -1,7 +1,7 @@
 <script lang="ts">
 	import wiki from 'wikipedia';
 
-	import { Button, ButtonSet, ComboBox, InlineLoading } from 'carbon-components-svelte';
+	import { Button, ComboBox, InlineLoading, NumberInput } from 'carbon-components-svelte';
 	import Pause from 'carbon-icons-svelte/lib/Pause.svelte';
 	import Play from 'carbon-icons-svelte/lib/Play.svelte';
 	import Add from 'carbon-icons-svelte/lib/Add.svelte';
@@ -10,37 +10,34 @@
 	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
 	import ChevronRight from 'carbon-icons-svelte/lib/ChevronRight.svelte';
 
-	/*
-        words loading
-        pause
-        {prev
-        next}
-            on:keydown set interval do
-            on:keyup clear interval
-        adjust speed on speed change
-    */
-
-	interface Result {
+	interface Item {
 		id: number;
 		text: string;
-		pageid: number;
+		pageid?: number;
 	}
 
 	$: shift(current_index);
-	$: play(word_interval);
+	$: update_word_interval(word_interval);
+	$: if (search_loading) items = [{ id: 0, text: 'Loading items' }];
 
 	let value: string,
-		results: Result[],
+		items: Item[],
 		search_delay_id: NodeJS.Timer,
 		content: string,
 		words: string[],
-        search_loading: boolean,
+		search_loading: boolean,
 		loading: boolean,
+		wpm: number,
 		display: string,
 		paused: boolean = true,
 		word_interval: number = 200.0415430267062,
 		word_interval_id: NodeJS.Timer,
 		current_index: number = 0;
+
+	const update_word_interval = (_: number) => {
+		pause();
+		play();
+	};
 
 	const search_on_input = () => {
 		typeof search_delay_id === 'number' ? clearInterval(search_delay_id) : {};
@@ -67,7 +64,7 @@
 		if (current_index < words.length - 1) ++current_index;
 	};
 
-	const shift = () => {
+	const shift = (..._: any[]) => {
 		if (!words || words.length < 1) return;
 		let to = words[current_index];
 		if (to) display = to;
@@ -86,7 +83,7 @@
 		paused = true;
 	};
 
-	const play = () => {
+	const play = (..._: any[]) => {
 		if (!words) return;
 		word_interval_id = setInterval(() => {
 			let next = words[current_index];
@@ -115,24 +112,24 @@
 	};
 
 	const search = async () => {
-        search_loading = true
+		search_loading = true;
 		let { results: res } = await wiki.search(value, { limit: 7 }).catch(() => []);
 		console.log('res', res);
 		if (res)
-			results = res.map((r, i) => {
+			items = res.map((r, i) => {
 				return {
 					id: i,
 					text: r.title,
 					pageid: r.pageid
 				};
 			});
-        search_loading = true
+		search_loading = true;
 	};
 
 	search();
 </script>
 
-<ComboBox on:keydown={search_on_input} on:select={select} bind:value items={results} />
+<ComboBox on:keydown={search_on_input} on:select={select} bind:value {items} />
 
 {#if loading}
 	<InlineLoading />
@@ -156,4 +153,20 @@
 {/if}
 <Button size="small" iconDescription="Reduce Speed" icon={Subtract} on:click={decrease_speed} />
 <Button size="small" iconDescription="Increase Speed" icon={Add} on:click={increase_speed} />
+
+<NumberInput
+	on:input={({ detail }) => (word_interval = 60000 / wpm)}
+	bind:value={wpm}
+	size="sm"
+	label="Words per minute"
+	min={1}
+/>
+<NumberInput
+	on:input={({ detail }) => (wpm = 60000 / word_interval)}
+	bind:value={word_interval}
+	size="sm"
+	label="Word interval"
+	min={1}
+	helperText="Words change every {word_interval} millisecond{word_interval > 1 ? 's' : ''}"
+/>
 <p>{60 / (word_interval / 1000)} words per minute</p>

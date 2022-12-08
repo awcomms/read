@@ -1,0 +1,8 @@
+wpm input
+words loading
+pause
+{prev
+next}
+    on:keydown set interval do
+    on:keyup clear interval
+adjust speed on speed change
