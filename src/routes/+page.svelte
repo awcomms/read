@@ -4,8 +4,6 @@
 	import { Button, ComboBox, InlineLoading, NumberInput } from 'carbon-components-svelte';
 	import Pause from 'carbon-icons-svelte/lib/Pause.svelte';
 	import Play from 'carbon-icons-svelte/lib/Play.svelte';
-	import Add from 'carbon-icons-svelte/lib/Add.svelte';
-	import Subtract from 'carbon-icons-svelte/lib/Subtract.svelte';
 	import Reset from 'carbon-icons-svelte/lib/Reset.svelte';
 	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
 	import ChevronRight from 'carbon-icons-svelte/lib/ChevronRight.svelte';
@@ -17,7 +15,7 @@
 	}
 
 	$: shift(current_index);
-	$: update_word_interval(word_interval);
+	$: update_speed(word_interval);
 	$: if (search_loading) items = [{ id: 0, text: 'Loading items' }];
 
 	let value: string,
@@ -34,7 +32,7 @@
 		word_interval_id: NodeJS.Timer,
 		current_index: number = 0;
 
-	const update_word_interval = (_: number) => {
+	const update_speed = (..._: number[]) => {
 		pause();
 		play();
 	};
@@ -151,8 +149,6 @@
 		on:click={toggle}
 	/>
 {/if}
-<Button size="small" iconDescription="Reduce Speed" icon={Subtract} on:click={decrease_speed} />
-<Button size="small" iconDescription="Increase Speed" icon={Add} on:click={increase_speed} />
 
 <NumberInput
 	on:input={({ detail }) => (word_interval = 60000 / wpm)}
