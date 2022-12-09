@@ -1,3 +1,6 @@
+cache
+catch search return from cache
+catch select wiki.page return from cache
 space bar to pause
 highlight currrent word in content
 split by fullstop

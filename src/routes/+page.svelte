@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { Item } from '$lib/types';
+	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
+
 	import wiki from 'wikipedia';
 
 	import {
@@ -15,13 +18,7 @@
 	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
 	import ChevronRight from 'carbon-icons-svelte/lib/ChevronRight.svelte';
 
-	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
-
-	interface Item {
-		id: number;
-		text: string;
-		pageid?: number;
-	}
+	import { cache } from '$lib/store';
 
 	const calc_speed = (v: number) => 60000 / v;
 
@@ -33,7 +30,9 @@
 		items: Item[],
 		search_delay_id: NodeJS.Timer,
 		content: string,
+		content_display: string,
 		words: string[],
+		content_ref: HTMLElement,
 		search_loading: boolean,
 		show_content: boolean,
 		loading: boolean,
@@ -51,6 +50,19 @@
 	// 	}
 	// };
 
+	// const highlight = () => {
+	// 	if (!show_content) return;
+	// 	let word = words[current_index];
+	// 	let before =
+	// 		words.slice(0, current_index).reduce((total, c) => total + c.length, 0) +
+	// 		Array.from(content.matchAll(/\s/g)).length;
+	// 	console.log(before);
+	// 	content_display =
+	// 		content.substring(0, before + 1) +
+	// 		`<span class="highlight">${word}</span>` +
+	// 		content.substring(before + word.length + 1);
+	// };
+
 	const update_speed = (..._: number[]) => {
 		pause();
 		play();
@@ -66,7 +78,9 @@
 	const select = async (e: CustomEvent<{ selectedId: any; selectedItem: ComboBoxItem }>) => {
 		const { detail } = e;
 		loading = true;
-		content = await wiki.content(detail.selectedItem.text);
+		let text = detail.selectedItem.text;
+		content = await wiki.content(text);
+		$cache[text] = content;
 		pause();
 		words = content.split(/\s+/g);
 		current_index = 0;
@@ -86,6 +100,7 @@
 		if (!words || words.length < 1) return;
 		let to = words[current_index];
 		if (to) display = to;
+		// highlight();
 	};
 
 	const toggle = () => {
@@ -163,7 +178,7 @@
 	<p>{display}</p>
 
 	{#if words && words.length > 0}
-		<Slider light bind:value={current_index} max={words.length - 1} />
+		<Slider hideTextInput light bind:value={current_index} max={words.length - 1} />
 		<Button size="small" iconDescription="Previous" on:click={prev} icon={ChevronLeft} />
 		<Button size="small" iconDescription="Next" on:click={next} icon={ChevronRight} />
 	{/if}
@@ -199,6 +214,14 @@
 	<Toggle size="sm" bind:toggled={show_content} labelText="Show content" />
 	<br />
 	{#if show_content}
-		<p>{content}</p>
+		{#each words as word, i}
+			<pre class:highlight={i === current_index} >{word} </pre>
+		{/each}
 	{/if}
 {/if}
+
+<style lang="sass">
+	@use '@carbon/colors'
+	.highlight
+		background-color: colors.$blue-20
+</style>
