@@ -168,60 +168,67 @@
 
 <!-- <svelte:window on:keydown={keydown} /> -->
 
-<ComboBox on:keydown={search_on_input} on:select={select} bind:value {items} />
+<div class="div">
+	<ComboBox on:keydown={search_on_input} on:select={select} bind:value {items} />
 
-{#if loading}
-	<InlineLoading />
-{/if}
-
-{#if display}
-	<p>{display}</p>
-
-	{#if words && words.length > 0}
-		<Slider hideTextInput light bind:value={current_index} max={words.length - 1} />
-		<Button size="small" iconDescription="Previous" on:click={prev} icon={ChevronLeft} />
-		<Button size="small" iconDescription="Next" on:click={next} icon={ChevronRight} />
+	{#if loading}
+		<InlineLoading />
 	{/if}
 
-	<Button size="small" iconDescription="Reset" on:click={reset} icon={Reset} />
-	<Button
-		size="small"
-		iconDescription={paused ? 'Play' : 'Pause'}
-		icon={paused ? Play : Pause}
-		on:click={toggle}
+	{#if display}
+		<p>{display}</p>
+
+		{#if words && words.length > 0}
+			<Slider hideTextInput light bind:value={current_index} max={words.length - 1} />
+			<Button size="small" iconDescription="Previous" on:click={prev} icon={ChevronLeft} />
+			<Button size="small" iconDescription="Next" on:click={next} icon={ChevronRight} />
+		{/if}
+
+		<Button size="small" iconDescription="Reset" on:click={reset} icon={Reset} />
+		<Button
+			size="small"
+			iconDescription={paused ? 'Play' : 'Pause'}
+			icon={paused ? Play : Pause}
+			on:click={toggle}
+		/>
+	{/if}
+
+	<NumberInput
+		on:input={({ detail }) => (word_interval = calc_speed(wpm))}
+		bind:value={wpm}
+		size="sm"
+		label="Words per minute"
+		min={1}
 	/>
-{/if}
+	<NumberInput
+		on:input={({ detail }) => (wpm = calc_speed(word_interval))}
+		bind:value={word_interval}
+		size="sm"
+		label="Word interval"
+		min={1}
+		helperText="Words change every {word_interval} millisecond{word_interval > 1 ? 's' : ''}"
+	/>
 
-<NumberInput
-	on:input={({ detail }) => (word_interval = calc_speed(wpm))}
-	bind:value={wpm}
-	size="sm"
-	label="Words per minute"
-	min={1}
-/>
-<NumberInput
-	on:input={({ detail }) => (wpm = calc_speed(word_interval))}
-	bind:value={word_interval}
-	size="sm"
-	label="Word interval"
-	min={1}
-	helperText="Words change every {word_interval} millisecond{word_interval > 1 ? 's' : ''}"
-/>
+	<br />
 
-<br />
+	{#if content}
+		<Toggle size="sm" bind:toggled={show_content} labelText="Show content" />
+		<br />
+	{/if}
+</div>
 
 {#if content}
-	<Toggle size="sm" bind:toggled={show_content} labelText="Show content" />
-	<br />
 	{#if show_content}
 		{#each words as word, i}
-			<pre class:highlight={i === current_index} >{word} </pre>
+			<span class:highlight={i === current_index}>{`${word} `}</span>
 		{/each}
 	{/if}
 {/if}
 
 <style lang="sass">
 	@use '@carbon/colors'
+	.div
+		display: sticky
 	.highlight
 		background-color: colors.$blue-20
 </style>
