@@ -18,10 +18,11 @@
 	import ChevronLeft from 'carbon-icons-svelte/lib/ChevronLeft.svelte';
 	import ChevronRight from 'carbon-icons-svelte/lib/ChevronRight.svelte';
 
-	import { cache } from '$lib/store';
+	import { cache, indices } from '$lib/store';
 
 	const calc_speed = (v: number) => 60000 / v;
 
+	$: set_reading_time(words, word_interval)
 	$: shift(current_index);
 	$: update_speed(word_interval);
 	$: if (search_loading) items = [{ id: 0, text: 'Loading items' }];
@@ -29,7 +30,9 @@
 	let value: string,
 		items: Item[],
 		search_delay_id: NodeJS.Timer,
+		reading_time: string,
 		content: string,
+		title: string,
 		content_display: string,
 		words: string[],
 		content_ref: HTMLElement,
@@ -63,6 +66,12 @@
 	// 		content.substring(before + word.length + 1);
 	// };
 
+	const set_reading_time = (..._: any[]) => {
+		if (!words) return
+ 		let seconds = (word_interval / 1000) * words.length;
+		reading_time = `${Math.floor(seconds / 60)} minutes ${seconds % 60} seconds`
+	}
+
 	const update_speed = (..._: number[]) => {
 		pause();
 		play();
@@ -75,15 +84,24 @@
 		}, 1000);
 	};
 
+	const resolve_title_index = (title: string) => {
+		let index = $indices[title];
+		if (typeof index === 'number') {
+			return index;
+		} else {
+			return 0;
+		}
+	};
+
 	const select = async (e: CustomEvent<{ selectedId: any; selectedItem: ComboBoxItem }>) => {
 		const { detail } = e;
 		loading = true;
-		let text = detail.selectedItem.text;
-		content = await wiki.content(text);
-		$cache[text] = content;
+		title = detail.selectedItem.text;
+		content = await wiki.content(title);
+		$cache[title] = content;
 		pause();
 		words = content.split(/\s+/g);
-		current_index = 0;
+		current_index = resolve_title_index(title);
 		loading = false;
 		play();
 	};
@@ -97,10 +115,13 @@
 	};
 
 	const shift = (..._: any[]) => {
+		if (!title) return;
+		// console.log(cache, indices, title, current_index)
+		// $indices[title] = current_index
 		if (!words || words.length < 1) return;
 		let to = words[current_index];
 		if (to) display = to;
-		document.getElementById(String(current_index))?.scrollIntoView(true)
+		document.getElementById(String(current_index))?.scrollIntoView(true);
 		// highlight();
 	};
 
@@ -177,21 +198,22 @@
 	{/if}
 
 	{#if display}
-		<p>{display}</p>
+		<div class="controls">
+			<p>{display}</p>
 
-		{#if words && words.length > 0}
-			<Slider hideTextInput light bind:value={current_index} max={words.length - 1} />
-			<Button size="small" iconDescription="Previous" on:click={prev} icon={ChevronLeft} />
-			<Button size="small" iconDescription="Next" on:click={next} icon={ChevronRight} />
-		{/if}
-
-		<Button size="small" iconDescription="Reset" on:click={reset} icon={Reset} />
-		<Button
-			size="small"
-			iconDescription={paused ? 'Play' : 'Pause'}
-			icon={paused ? Play : Pause}
-			on:click={toggle}
-		/>
+			{#if words && words.length > 0}
+				<Slider hideTextInput light bind:value={current_index} max={words.length - 1} />
+				<Button size="small" iconDescription="Previous" on:click={prev} icon={ChevronLeft} />
+				<Button size="small" iconDescription="Next" on:click={next} icon={ChevronRight} />
+			{/if}
+			<Button size="small" iconDescription="Reset" on:click={reset} icon={Reset} />
+			<Button
+				size="small"
+				iconDescription={paused ? 'Play' : 'Pause'}
+				icon={paused ? Play : Pause}
+				on:click={toggle}
+			/>
+		</div>
 	{/if}
 
 	<NumberInput
@@ -210,7 +232,9 @@
 		helperText="Words change every {word_interval} millisecond{word_interval > 1 ? 's' : ''}"
 	/>
 
-	<br />
+	{#if words}
+		<p>Estimated reading time: {reading_time}</p>
+	{/if}
 
 	{#if content}
 		<Toggle size="sm" bind:toggled={show_content} labelText="Show content" />
@@ -222,7 +246,7 @@
 	{#if show_content}
 		<div class="content">
 			{#each words as word, i}
-				<span id={String(i)}  class:highlight={i === current_index}>{`${word} `}</span>
+				<span id={String(i)} class:highlight={i === current_index}>{`${word} `}</span>
 			{/each}
 		</div>
 	{/if}
@@ -234,7 +258,9 @@
 		height: 210px
 		overflow: scroll
 	.div
-		display: sticky
+		display: flex
+		flex-direction: column
+		row-gap: 1rem
 	.highlight
 		background-color: colors.$blue-20
 </style>
