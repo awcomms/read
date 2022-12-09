@@ -100,6 +100,7 @@
 		if (!words || words.length < 1) return;
 		let to = words[current_index];
 		if (to) display = to;
+		document.getElementById(String(current_index))?.scrollIntoView(true)
 		// highlight();
 	};
 
@@ -219,14 +220,19 @@
 
 {#if content}
 	{#if show_content}
-		{#each words as word, i}
-			<span class:highlight={i === current_index}>{`${word} `}</span>
-		{/each}
+		<div class="content">
+			{#each words as word, i}
+				<span id={String(i)}  class:highlight={i === current_index}>{`${word} `}</span>
+			{/each}
+		</div>
 	{/if}
 {/if}
 
 <style lang="sass">
 	@use '@carbon/colors'
+	.content
+		height: 210px
+		overflow: scroll
 	.div
 		display: sticky
 	.highlight
