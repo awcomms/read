@@ -109,7 +109,7 @@
 		let to = words[current_index];
 		if (to) display = to;
 		// if (document) document.getElementById(String(current_index))?.scrollIntoView(true);
-        console.log(current_index, words.length)
+        // console.log(current_index, words.length)
 		if (current_index === words.length - 1) dispatch('end');
 		// highlight();
 	};

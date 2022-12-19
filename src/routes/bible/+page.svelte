@@ -5,10 +5,11 @@
 	// import type {Item} from "$lib/types"
 
 	import { books, chapters, verses, mapped } from '$lib/bible/kjv';
+	import type { Book } from '$lib/types';
 
 	$: if (book && chapter && verse) content = mapped[book][chapter][verse];
 
-	let content: string, book: string, chapter: number, verse: number;
+	let content: string, book: Book, chapter: number, verse: number;
 
 	const shift = () => {
         console.log('shift')
@@ -19,10 +20,10 @@
 				if (!(books[books.length - 1].text === book))
 					book = books[books.findIndex((b) => b.text === book) + 1].text;
 			} else {
-				++chapter;
+				chapter = chapters[book][chapters[book].findIndex((c) => c.text === chapter) + 1].text
 			}
 		} else {
-			++verse;
+			verse = verses[book][chapter][verses[book][chapter].findIndex((v) => v.text === verse) + 1].text
 		}
 	};
 </script>
